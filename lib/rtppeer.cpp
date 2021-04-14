@@ -76,8 +76,8 @@ void rtppeer::data_ready(io_bytes_reader &&buffer, port_e port) {
 }
 
 bool rtppeer::is_command(io_bytes_reader &pb) {
-  // DEBUG("Is command? {} {} {}", pb.size() >= 16, pb.start[0] == 0xFF,
-  // pb.start[1] == 0xFF);
+//   DEBUG("Is command? {} {} {}", pb.size() >= 16, pb.start[0] == 0xFF,
+//   pb.start[1] == 0xFF);
   return (pb.size() >= 16 && pb.start[0] == 0xFF && pb.start[1] == 0xFF);
 }
 bool rtppeer::is_feedback(io_bytes_reader &pb) {
@@ -527,7 +527,7 @@ void rtppeer::connect_to(port_e rtp_port) {
 }
 
 void rtppeer::parse_journal(io_bytes_reader &journal_data) {
-  journal_data.print_hex();
+//  journal_data.print_hex();
 
   uint8_t header = journal_data.read_uint8();
 

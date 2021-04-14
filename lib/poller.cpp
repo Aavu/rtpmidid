@@ -17,7 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#include <string.h>
+#include <cstring>
 #include <sys/epoll.h>
 #include <unistd.h>
 
@@ -28,7 +28,7 @@
 using namespace rtpmidid;
 
 struct poller_private_data_t {
-  int epollfd;
+  int epollfd{-1};
   std::map<int, std::function<void(int)>> fd_events;
   std::vector<std::tuple<std::chrono::steady_clock::time_point, int,
                          std::function<void(void)>>>
@@ -40,13 +40,14 @@ struct poller_private_data_t {
 poller_t rtpmidid::poller;
 
 poller_t::poller_t() {
-  poller_private_data_t *pd = new poller_private_data_t;
+  auto *pd = new poller_private_data_t;
   pd->epollfd = epoll_create1(0);
   if (pd->epollfd < 0) {
     throw exception("Could not start epoll: {}", strerror(errno));
   }
   this->private_data = pd;
 }
+
 poller_t::~poller_t() {
   close();
 
@@ -84,6 +85,7 @@ void poller_t::add_fd_inout(int fd, std::function<void(int)> f) {
                     errno);
   }
 }
+
 void poller_t::add_fd_in(int fd, std::function<void(int)> f) {
   auto pd = static_cast<poller_private_data_t *>(private_data);
 
@@ -99,11 +101,12 @@ void poller_t::add_fd_in(int fd, std::function<void(int)> f) {
                     strerror(errno), errno);
   }
 }
+
 void poller_t::add_fd_out(int fd, std::function<void(int)> f) {
   auto pd = static_cast<poller_private_data_t *>(private_data);
 
   pd->fd_events[fd] = f;
-  struct epoll_event ev;
+  epoll_event ev;
   memset(&ev, 0, sizeof(ev));
 
   ev.events = EPOLLOUT;

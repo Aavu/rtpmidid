@@ -1,4 +1,6 @@
 /**
+ * Modified by Raghavasimhan Sankaranarayanan on 04/08/21
+ *
  * Real Time Protocol Music Instrument Digital Interface Daemon
  * Copyright (C) 2019 David Moreno Montero <dmoreno@coralbits.com>
  *
@@ -17,9 +19,7 @@
  */
 
 #include <iostream>
-#include <random>
-#include <signal.h>
-#include <unistd.h>
+#include <csignal>
 
 #include "./config.hpp"
 #include "./control_socket.hpp"
@@ -30,47 +30,47 @@
 static bool exiting = false;
 
 void sigterm_f(int) {
-  if (exiting) {
-    exit(1);
-  }
-  exiting = true;
-  INFO("SIGTERM received. Closing.");
-  rtpmidid::poller.close();
+    if (exiting) {
+        exit(1);
+    }
+    exiting = true;
+    INFO("SIGTERM received. Closing.");
+    rtpmidid::poller.close();
 }
+
 void sigint_f(int) {
-  if (exiting) {
-    exit(1);
-  }
-  exiting = true;
-  INFO("SIGINT received. Closing.");
-  rtpmidid::poller.close();
+    if (exiting) {
+        exit(1);
+    }
+    exiting = true;
+    INFO("SIGINT received. Closing.");
+    rtpmidid::poller.close();
 }
 
 int main(int argc, char **argv) {
 
-  // We dont need crypto rand, just some rand
-  srand(time(NULL));
+    // We dont need crypto rand, just some rand
+    srand(time(nullptr));
 
-  signal(SIGINT, sigint_f);
-  signal(SIGTERM, sigterm_f);
+    signal(SIGINT, sigint_f);
+    signal(SIGTERM, sigterm_f);
 
-  INFO("Real Time Protocol Music Instrument Digital Interface Daemon - {}",
-       rtpmidid::VERSION);
-  INFO("(C) 2019 David Moreno Montero <dmoreno@coralbits.com>");
+    INFO("Real Time Protocol Music Instrument Digital Interface Daemon - {}",
+         rtpmidid::VERSION);
+    INFO("(C) 2019 David Moreno Montero <dmoreno@coralbits.com>");
 
-  auto options = rtpmidid::parse_cmd_args(argc - 1, argv + 1);
+    auto options = rtpmidid::parse_cmd_args(argc - 1, argv + 1);
 
-  try {
-    auto rtpmidid = rtpmidid::rtpmidid_t(&options);
-    auto control = rtpmidid::control_socket_t(rtpmidid, options.control);
+    try {
+        auto rtpmidid = rtpmidid::rtpmidid_t(&options);
+//        auto control = rtpmidid::control_socket_t(rtpmidid, options.control);
 
-    while (rtpmidid::poller.is_open()) {
-      rtpmidid::poller.wait();
+        while (rtpmidid::poller.is_open()) {
+            rtpmidid::poller.wait();
+        }
+    } catch (const std::exception &e) {
+        ERROR("{}", e.what());
+        return 1;
     }
-  } catch (const std::exception &e) {
-    ERROR("{}", e.what());
-    return 1;
-  }
-  DEBUG("FIN");
-  return 0;
+    return 0;
 }

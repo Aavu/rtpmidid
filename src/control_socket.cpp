@@ -16,8 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <errno.h>
-#include <stdlib.h>
+#include <cerrno>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -29,7 +28,6 @@
 #include "config.hpp"
 #include "control_socket.hpp"
 #include "stringpp.hpp"
-#include <rtpmidid/exceptions.hpp>
 #include <rtpmidid/logger.hpp>
 #include <rtpmidid/poller.hpp>
 #include <rtpmidid/rtpclient.hpp>
@@ -42,11 +40,10 @@ const char *MSG_CLOSE_CONN =
     "{\"event\": \"close\", \"detail\": \"Shutdown\", \"code\": 0}\n";
 const char *MSG_TOO_LONG =
     "{\"event\": \"close\", \"detail\": \"Message too long\", \"code\": 1}\n";
-const char *MSG_UNKNOWN_COMMAND =
-    "{\"error\": \"Unknown command\", \"code\": 2}";
+const char *MSG_UNKNOWN_COMMAND = "{\"error\": \"Unknown command\", \"code\": 2}";
 
 struct control_msg_t {
-  int id;
+  int id{-1};
   std::string method;
   json params;
 };
@@ -61,8 +58,8 @@ rtpmidid::control_socket_t::control_socket_t(rtpmidid::rtpmidid_t &rtpmidid,
   }
 
   listen_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  struct sockaddr_un addr;
-  memset(&addr, 0, sizeof(struct sockaddr_un));
+  sockaddr_un addr{};
+  memset(&addr, 0, sizeof(sockaddr_un));
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, socketfile.c_str(), sizeof(addr.sun_path) - 1);
 
@@ -79,7 +76,7 @@ rtpmidid::control_socket_t::control_socket_t(rtpmidid::rtpmidid_t &rtpmidid,
   rtpmidid::poller.add_fd_in(listen_socket,
                              [this](int fd) { this->connection_ready(); });
   INFO("Control socket ready at {}", socketfile);
-  start_time = time(NULL);
+  start_time = time(nullptr);
 }
 
 rtpmidid::control_socket_t::~control_socket_t() {
@@ -94,7 +91,7 @@ rtpmidid::control_socket_t::~control_socket_t() {
 }
 
 void rtpmidid::control_socket_t::connection_ready() {
-  int fd = accept(listen_socket, NULL, NULL);
+  int fd = accept(listen_socket, nullptr, nullptr);
 
   rtpmidid::poller.add_fd_in(fd, [this](int fd) { this->data_ready(fd); });
   DEBUG("Added control connection: {}", fd);
@@ -133,15 +130,14 @@ void rtpmidid::control_socket_t::data_ready(int fd) {
   fsync(fd);
 }
 
-namespace rtpmidid {
-namespace commands {
+namespace rtpmidid::commands {
 // Commands
 static json status(rtpmidid::rtpmidid_t &rtpmidid, time_t start_time) {
   auto js =
-      json{{"version", rtpmidid::VERSION}, {"uptime", time(NULL) - start_time}};
+      json{{"version", rtpmidid::VERSION}, {"uptime", time(nullptr) - start_time}};
 
   std::vector<json> clients;
-  for (auto port_client : rtpmidid.known_clients) {
+  for (const auto& port_client : rtpmidid.known_clients) {
     auto client = port_client.second;
     json cl = {{"name", client.name},
                {"use_count", client.use_count},
@@ -163,7 +159,7 @@ static json status(rtpmidid::rtpmidid_t &rtpmidid, time_t start_time) {
   js["clients"] = clients;
 
   std::vector<json> connections;
-  for (auto port_client : rtpmidid.known_servers_connections) {
+  for (const auto& port_client : rtpmidid.known_servers_connections) {
     auto client = port_client.second;
     json cl = {
         {"name", client.name},
@@ -173,7 +169,7 @@ static json status(rtpmidid::rtpmidid_t &rtpmidid, time_t start_time) {
   js["connections"] = connections;
 
   std::vector<json> servers;
-  for (auto server : rtpmidid.servers) {
+  for (const auto& server : rtpmidid.servers) {
     json data = {
         {"name", server->name},
         {"port", server->midi_port},
@@ -203,8 +199,7 @@ static json create(rtpmidid::rtpmidid_t &rtpmidid, const std::string &name,
     return {{"detail", "Could not create. Check logs."}};
   }
 }
-} // namespace commands
-} // namespace rtpmidid
+} // namespace rtpmidid::commands
 
 // Last declaration to avoid forward declaration
 
@@ -233,7 +228,7 @@ rtpmidid::control_socket_t::parse_command(const std::string &command) {
   }
   json ret = nullptr; // Fill the one you return
   json error =
-      json{{"detail", "Unknown command"}, {"code", 2}}; // By detault no command
+      json{{"detail", "Unknown command"}, {"code", 2}}; // By default no command
 
   if (msg.method == "status") {
     ret = rtpmidid::commands::status(rtpmidid, start_time);

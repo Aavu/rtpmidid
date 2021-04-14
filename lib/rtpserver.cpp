@@ -35,18 +35,18 @@ rtpserver::rtpserver(std::string _name, const std::string &port)
   control_socket = midi_socket = 0;
   control_port = 0;
   midi_port = 0;
-  struct addrinfo *sockaddress_list = nullptr;
+  addrinfo *sockaddress_list = nullptr;
 
   try {
-    struct addrinfo hints;
+    addrinfo hints{};
 
     int res;
-    memset(&hints, 0, sizeof(struct addrinfo));
+    memset(&hints, 0, sizeof(addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE;
 
-    const char *cport = (port == "") ? nullptr : port.c_str();
+    const char *cport = (port.empty()) ? nullptr : port.c_str();
 
     res = getaddrinfo("::", cport, &hints, &sockaddress_list);
     if (res < 0) {
@@ -79,7 +79,7 @@ rtpserver::rtpserver(std::string _name, const std::string &port)
       throw rtpmidid::exception("Can not open rtpmidi control socket. {}.",
                                 strerror(errno));
     }
-    struct sockaddr_in6 addr;
+    sockaddr_in6 addr;
     unsigned int len = sizeof(addr);
     res = ::getsockname(control_socket, (sockaddr *)&addr, &len);
     if (res < 0) {
@@ -210,7 +210,7 @@ std::shared_ptr<rtppeer> rtpserver::get_peer_by_packet(io_bytes_reader &buffer,
 
 void rtpserver::data_ready(rtppeer::port_e port) {
   uint8_t raw[1500];
-  struct sockaddr_in6 cliaddr;
+  sockaddr_in6 cliaddr{};
   unsigned int len = sizeof(cliaddr);
   auto socket = (port == rtppeer::CONTROL_PORT) ? control_socket : midi_socket;
   auto n = recvfrom(socket, raw, 1500, MSG_DONTWAIT,
@@ -301,7 +301,7 @@ void rtpserver::create_peer_from(io_bytes_reader &&buffer,
       });
 
   peer->midi_event.connect([this](const io_bytes_reader &data) {
-    // DEBUG("Got MIDI from the remote peer into this server.");
+//     DEBUG("Got MIDI from the remote peer into this server.");
     midi_event(data);
   });
 

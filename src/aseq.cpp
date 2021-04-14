@@ -22,7 +22,7 @@
 #include <rtpmidid/logger.hpp>
 #include <rtpmidid/poller.hpp>
 #include <rtpmidid/rtpclient.hpp>
-#include <stdio.h>
+#include <cstdio>
 
 namespace rtpmidid {
 void error_handler(const char *file, int line, const char *function, int err,

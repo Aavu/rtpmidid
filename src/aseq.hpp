@@ -47,7 +47,7 @@ public:
   std::map<int, signal_t<snd_seq_event_t *>> midi_event;
   uint8_t client_id;
 
-  aseq(std::string name);
+  explicit aseq(std::string name);
   ~aseq();
 
   void read_ready();

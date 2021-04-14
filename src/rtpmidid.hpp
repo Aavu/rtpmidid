@@ -75,7 +75,7 @@ public:
                                             const std::string &port);
   void remove_rtpmidi_client(const std::string &name);
 
-  void recv_rtpmidi_event(int port, io_bytes_reader &midi_data);
+  void recv_rtpmidi_event(int port, io_bytes_reader &midi_data) const;
   void recv_alsamidi_event(int port, snd_seq_event_t *ev);
 
   void alsamidi_to_midiprotocol(snd_seq_event_t *ev, io_bytes_writer &buffer);
