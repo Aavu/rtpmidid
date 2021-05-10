@@ -398,7 +398,7 @@ void rtppeer::parse_midi(io_bytes_reader &buffer) {
   if ((header & 0x40) != 0) {
     // I actually parse the journal BEFORE the current message as it is
     // for events before the event.
-    WARNING("This RTP MIDI header has journal. WIP.");
+//    WARNING("This RTP MIDI header has journal. WIP.");
     io_bytes_reader journal_data = buffer;
     journal_data.position += length;
 

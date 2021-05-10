@@ -24,6 +24,10 @@
 #define DEBUG_ENABLED true
 #endif
 
+#ifndef INFO_ENABLED
+#define INFO_ENABLED true
+#endif
+
 #if DEBUG_ENABLED
 #define DEBUG(...) logger::log(__FILE__, __LINE__, logger::DEBUG, __VA_ARGS__)
 #else
@@ -32,7 +36,11 @@
 #define WARNING(...)                                                           \
   logger::log(__FILE__, __LINE__, logger::WARNING, __VA_ARGS__)
 #define ERROR(...) logger::log(__FILE__, __LINE__, logger::ERROR, __VA_ARGS__)
+#if INFO_ENABLED
 #define INFO(...) logger::log(__FILE__, __LINE__, logger::INFO, __VA_ARGS__)
+#else
+#define INFO(...) false
+#endif
 #define SUCCESS(...)                                                           \
   logger::log(__FILE__, __LINE__, logger::SUCCESS, __VA_ARGS__)
 
